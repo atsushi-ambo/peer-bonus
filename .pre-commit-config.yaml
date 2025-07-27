@@ -1,0 +1,52 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.2
+    hooks:
+      - id: ruff
+        args: ["--select", "F821", "--fix"]
+
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.0
+    hooks:
+      - id: isort
+        language_version: python3.11
+
+  # Frontend checks
+  - repo: https://github.com/prettier/prettier
+    rev: '3.2.5'
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: npx prettier --write .
+        types: [javascript, typescript, css, json, markdown, yaml, html]
+        language: system
+        pass_filenames: false
+
+  - repo: https://github.com/okonet/lint-staged
+    rev: v15.2.2
+    hooks:
+      - id: lint-staged
+        name: lint-staged
+        entry: pnpm exec lint-staged
+        language: node
+        always_run: true
+        verbose: true
+        pass_filenames: false
+        types: [javascript, typescript, javascriptreact, typescriptreact, json, yaml, markdown, css, scss, html, vue, svelte, graphql, mdx]
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.91.0
+    hooks:
+      - id: terraform_fmt
+        name: terraform_fmt
+        entry: terraform fmt -check -recursive
+        language: system
+        always_run: true
+        pass_filenames: false
+        types: [terraform]
