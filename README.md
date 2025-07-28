@@ -7,6 +7,12 @@
 ### プロジェクト概要
 Peer Bonus は、チームメンバー同士が感謝の気持ちを送り合えるサービスです。Unipos のような機能を提供し、チームのモチベーション向上とポジティブなカルチャー醸成をサポートします。
 
+### 主な機能
+- **Kudos 送信**: チームメンバーに感謝のメッセージを送信
+- **リアクション機能**: 送信された Kudos に絵文字でリアクション (❤️, 👏, 🎉, 🚀)
+- **フィード表示**: チーム全体の Kudos をリアルタイムで表示
+- **GraphQL API**: 効率的なデータ取得とリアルタイム更新
+
 ### クイックスタート
 
 #### 前提条件
@@ -50,6 +56,12 @@ $ make logs
 
 ### Project Overview
 Peer Bonus is a service that allows team members to send appreciation to each other. It provides features similar to Unipos, supporting team motivation and fostering a positive culture.
+
+### Key Features
+- **Send Kudos**: Send appreciation messages to team members
+- **Reaction System**: React to kudos with emojis (❤️, 👏, 🎉, 🚀)
+- **Activity Feed**: Real-time display of team kudos
+- **GraphQL API**: Efficient data fetching and real-time updates
 
 ### Quick Start
 
@@ -133,14 +145,55 @@ $ make logs
 #### GraphQL
 - `POST /graphql` - GraphQL endpoint
 
-Example query:
+Example queries:
 ```graphql
+# Get all users
 query {
   users {
     id
     email
     name
   }
+}
+
+# Get kudos with reactions
+query {
+  kudos {
+    id
+    message
+    sender {
+      name
+    }
+    receiver {
+      name
+    }
+    reactions {
+      reactionType
+      count
+      userReacted
+    }
+  }
+}
+
+# Send kudos
+mutation {
+  send_kudos(input: {
+    senderId: "user-id-1"
+    receiverId: "user-id-2"
+    message: "Great work on the project!"
+  }) {
+    id
+    message
+  }
+}
+
+# Toggle reaction
+mutation {
+  toggleReaction(input: {
+    kudosId: "kudos-id"
+    userId: "user-id"
+    reactionType: "❤️"
+  })
 }
 ```
 
