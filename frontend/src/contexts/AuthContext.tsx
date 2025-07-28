@@ -40,9 +40,17 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Initialize auth state on mount
+  // Handle hydration
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // Initialize auth state on mount (client-side only)
+  useEffect(() => {
+    if (!hydrated) return; // Wait for hydration
+
     const initializeAuth = async () => {
       try {
         if (isAuthenticated()) {
@@ -68,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initializeAuth();
-  }, []);
+  }, [hydrated]);
 
   const login = async (credentials: LoginCredentials) => {
     try {
@@ -116,11 +124,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
-    loading,
+    loading: loading || !hydrated, // Keep loading until hydrated
     login,
     register,
     logout,
-    isLoggedIn: !!user && isAuthenticated(),
+    isLoggedIn: hydrated && !!user && isAuthenticated(),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

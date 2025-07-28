@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useClientSide } from '@/hooks/useClientSide';
 import { Button } from '@/components/ui/button';
 
 interface AppShellProps {
@@ -13,13 +14,14 @@ interface AppShellProps {
 export default function AppShell({ children, requireAuth = true }: AppShellProps) {
   const { user, logout, loading, isLoggedIn } = useAuth();
   const router = useRouter();
+  const isClient = useClientSide();
 
-  // Handle authentication redirect in useEffect (after render)
+  // Handle authentication redirect in useEffect (after render and hydration)
   useEffect(() => {
-    if (!loading && requireAuth && !isLoggedIn) {
+    if (isClient && !loading && requireAuth && !isLoggedIn) {
       router.push('/auth');
     }
-  }, [loading, requireAuth, isLoggedIn, router]);
+  }, [isClient, loading, requireAuth, isLoggedIn, router]);
 
   // Show loading while checking auth state
   if (loading) {
