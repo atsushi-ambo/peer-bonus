@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,13 @@ export default function AppShell({ children, requireAuth = true }: AppShellProps
   const { user, logout, loading, isLoggedIn } = useAuth();
   const router = useRouter();
 
+  // Handle authentication redirect in useEffect (after render)
+  useEffect(() => {
+    if (!loading && requireAuth && !isLoggedIn) {
+      router.push('/auth');
+    }
+  }, [loading, requireAuth, isLoggedIn, router]);
+
   // Show loading while checking auth state
   if (loading) {
     return (
@@ -26,9 +33,8 @@ export default function AppShell({ children, requireAuth = true }: AppShellProps
     );
   }
 
-  // Redirect to auth page if not logged in and auth is required
+  // Don't render content if auth is required but user is not logged in
   if (requireAuth && !isLoggedIn) {
-    router.push('/auth');
     return null;
   }
 
