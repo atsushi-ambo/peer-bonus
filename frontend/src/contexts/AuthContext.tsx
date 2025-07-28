@@ -101,17 +101,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (credentials: RegisterCredentials) => {
     try {
+      console.log('AuthContext: Starting registration with:', credentials);
       setLoading(true);
       
       // Register user
+      console.log('AuthContext: Calling authAPI.register...');
       const userData = await authAPI.register(credentials);
+      console.log('AuthContext: Registration API response:', userData);
       
       // Auto-login after registration
+      console.log('AuthContext: Starting auto-login...');
       await login({
         email: credentials.email,
         password: credentials.password,
       });
+      console.log('AuthContext: Auto-login completed');
     } catch (error) {
+      console.error('AuthContext: Registration error:', error);
       setLoading(false);
       throw error;
     }

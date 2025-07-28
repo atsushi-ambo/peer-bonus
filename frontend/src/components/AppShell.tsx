@@ -46,39 +46,46 @@ export default function AppShell({ children, requireAuth = true }: AppShellProps
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {isLoggedIn && (
-        <header className="bg-white shadow-sm border-b">
+        <header className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-blue-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                <h1 className="text-xl font-semibold text-gray-900">Peer Bonus</h1>
-                <nav className="flex space-x-4">
-                  <button
-                    onClick={() => router.push('/')}
-                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Feed
-                  </button>
+              <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">✨</span>
+                  </div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Peer Bonus</h1>
+                </div>
+                <nav className="flex space-x-1">
                   <button
                     onClick={() => router.push('/feed')}
-                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
                   >
-                    My Kudos
+                    📊 Feed
+                  </button>
+                  <button
+                    onClick={() => router.push('/')}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                  >
+                    ✨ Send Kudos
                   </button>
                 </nav>
               </div>
               
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
-                  Welcome, {user?.name}
-                </span>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">Welcome back!</p>
+                  <p className="text-xs text-gray-600">{user?.name}</p>
+                </div>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={handleLogout}
+                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors duration-200"
                 >
-                  Logout
+                  🚪 Logout
                 </Button>
               </div>
             </div>
@@ -86,8 +93,10 @@ export default function AppShell({ children, requireAuth = true }: AppShellProps
         </header>
       )}
       
-      <main className={isLoggedIn ? "py-6" : ""}>
-        {children}
+      <main className={isLoggedIn ? "py-8" : ""}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {children}
+        </div>
       </main>
     </div>
   );

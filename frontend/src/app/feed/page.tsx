@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetcher } from '@/lib/graphql';
+import AppShell from '@/components/AppShell';
 import Link from 'next/link';
 
 export default function Feed() {
@@ -48,8 +49,7 @@ export default function Feed() {
       `, {
         input: {
           kudosId: kudosId,
-          reactionType: reactionType,
-          userId: "4ea211ca-b07f-49ff-abfd-8e066610500f" // Default user (Alice)
+          reactionType: reactionType
         }
       });
       
@@ -72,7 +72,8 @@ export default function Feed() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+    <AppShell>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
       {/* Top Navigation */}
       <div style={{
         backgroundColor: '#4a154b',
@@ -414,6 +415,7 @@ export default function Feed() {
           50% { opacity: 0.5; }
         }
       `}</style>
-    </div>
+      </div>
+    </AppShell>
   );
 }

@@ -3,10 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface RegisterFormProps {
   onSwitchToLogin?: () => void;
@@ -44,20 +40,33 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    // Enhanced password validation
+    if (!/[0-9]/.test(formData.password)) {
+      setError('Password must contain at least one number');
+      return;
+    }
+
+    if (!/[a-zA-Z]/.test(formData.password)) {
+      setError('Password must contain at least one letter');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await register({
+      const registerData = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-      });
-      router.push('/'); // Redirect to home page after successful registration
+      };
+      
+      await register(registerData);
+      router.push('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -66,98 +75,109 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>
-          Join your team and start sharing appreciation
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
+    <div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          {/* Name Field */}
+          <div>
+            <input
               id="name"
               name="name"
               type="text"
-              placeholder="Enter your full name"
+              placeholder="Full name"
               value={formData.name}
               onChange={handleChange}
               required
               disabled={isLoading}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all backdrop-blur-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
+          {/* Email Field */}
+          <div>
+            <input
               id="email"
               name="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="Email address"
               value={formData.email}
               onChange={handleChange}
               required
               disabled={isLoading}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all backdrop-blur-sm"
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
+          {/* Password Field */}
+          <div>
+            <input
               id="password"
               name="password"
               type="password"
-              placeholder="Choose a password"
+              placeholder="Password (8+ chars, letters & numbers)"
               value={formData.password}
               onChange={handleChange}
               required
               disabled={isLoading}
-              minLength={6}
+              minLength={8}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all backdrop-blur-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
+          {/* Confirm Password Field */}
+          <div>
+            <input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
-              placeholder="Confirm your password"
+              placeholder="Confirm password"
               value={formData.confirmPassword}
               onChange={handleChange}
               required
               disabled={isLoading}
-              minLength={6}
+              minLength={8}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all backdrop-blur-sm"
             />
           </div>
+        </div>
 
-          {error && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-              {error}
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/20 border border-red-400/30 text-red-100 p-3 rounded-xl text-sm backdrop-blur-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-white text-gray-900 py-3 px-4 rounded-xl font-medium hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+              Creating account...
             </div>
+          ) : (
+            'Create Account'
           )}
+        </button>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Create account'}
-          </Button>
-
-          {onSwitchToLogin && (
-            <div className="text-center text-sm">
-              Already have an account?{' '}
-              <button
-                type="button"
-                onClick={onSwitchToLogin}
-                className="text-blue-600 hover:underline"
-                disabled={isLoading}
-              >
-                Sign in
-              </button>
-            </div>
-          )}
-        </form>
-      </CardContent>
-    </Card>
+        {/* Switch to Login */}
+        {onSwitchToLogin && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={onSwitchToLogin}
+              className="text-white/70 hover:text-white text-sm transition-colors"
+              disabled={isLoading}
+            >
+              Already have an account? <span className="underline">Sign in</span>
+            </button>
+          </div>
+        )}
+      </form>
+    </div>
   );
 }

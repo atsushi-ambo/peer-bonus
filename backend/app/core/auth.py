@@ -9,8 +9,13 @@ from pydantic import BaseModel
 
 from app.core.config import settings
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing - with explicit bcrypt configuration to handle version issues
+pwd_context = CryptContext(
+    schemes=["bcrypt"], 
+    deprecated="auto",
+    bcrypt__rounds=12,
+    bcrypt__ident="2b"
+)
 
 # JWT settings
 ALGORITHM = "HS256"

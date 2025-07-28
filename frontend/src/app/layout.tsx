@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from './providers';
-import AppShell from '@/components/AppShell';
 import { Toaster } from 'sonner';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap',
+  preload: true 
+});
 
 export const metadata: Metadata = {
   title: "Peer Bonus",
@@ -19,9 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <head>
+      </head>
+      <body className={inter.className} suppressHydrationWarning>
         <Providers>
-          <AppShell>{children}</AppShell>
+          {children}
           <Toaster richColors position="top-center" />
         </Providers>
       </body>

@@ -3,10 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface LoginFormProps {
   onSwitchToRegister?: () => void;
@@ -30,7 +26,7 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
     try {
       await login({ email, password });
-      router.push('/'); // Redirect to home page after successful login
+      router.push('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -39,66 +35,75 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>
-          Sign in to your account to continue
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
+    <div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          {/* Email Field */}
+          <div>
+            <input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all backdrop-blur-sm"
             />
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
+          {/* Password Field */}
+          <div>
+            <input
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all backdrop-blur-sm"
             />
           </div>
+        </div>
 
-          {error && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-              {error}
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/20 border border-red-400/30 text-red-100 p-3 rounded-xl text-sm backdrop-blur-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-white text-gray-900 py-3 px-4 rounded-xl font-medium hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+        >
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+              Signing in...
             </div>
+          ) : (
+            'Sign In'
           )}
+        </button>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </Button>
-
-          {onSwitchToRegister && (
-            <div className="text-center text-sm">
-              Don't have an account?{' '}
-              <button
-                type="button"
-                onClick={onSwitchToRegister}
-                className="text-blue-600 hover:underline"
-                disabled={isLoading}
-              >
-                Sign up
-              </button>
-            </div>
-          )}
-        </form>
-      </CardContent>
-    </Card>
+        {/* Switch to Register */}
+        {onSwitchToRegister && (
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={onSwitchToRegister}
+              className="text-white/70 hover:text-white text-sm transition-colors"
+              disabled={isLoading}
+            >
+              Don't have an account? <span className="underline">Sign up</span>
+            </button>
+          </div>
+        )}
+      </form>
+    </div>
   );
 }

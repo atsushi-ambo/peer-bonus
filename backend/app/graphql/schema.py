@@ -209,8 +209,12 @@ class Mutation:
     toggle_reaction: bool = strawberry.field(resolver=toggle_reaction)
     
     @strawberry.field
-    def toggleReaction(self, input: ToggleReactionInput) -> bool:
-        return toggle_reaction(None, input)
+    def sendKudos(self, input: SendKudosInput, info: Info) -> Kudos:
+        return send_kudos(info, input)
+    
+    @strawberry.field
+    def toggleReaction(self, input: ToggleReactionInput, info: Info) -> bool:
+        return toggle_reaction(info, input)
 
 def get_context(request, response=None):
     return {"request": request, "response": response}

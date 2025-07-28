@@ -50,13 +50,12 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // Peer-Bonus explicit palette
-        primary: {
-          DEFAULT: '#2563eb', // indigo-600
-          foreground: '#ffffff',
-          hover: '#3b82f6', // indigo-500
-        },
-        'primary-hover': '#3b82f6', // for hover states
+        // Additional colors
+        gray: {
+          50: '#f9fafb',
+          100: '#f3f4f6',
+          900: '#111827',
+        }
       },
       borderRadius: {
         lg: 'var(--radius)',
