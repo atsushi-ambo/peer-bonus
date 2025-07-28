@@ -1,20 +1,23 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from "sonner";
-import { fetcher } from "@/lib/graphql"
+import { useUsers, useSendKudos } from "@/lib/graphql"
+import { useAuth } from '@/contexts/AuthContext'
+import AppShell from '@/components/AppShell'
 import Link from 'next/link'
 
 export default function Home() {
+  const { user: currentUser } = useAuth();
+  const queryClient = useQueryClient();
   const { control, handleSubmit, reset, formState: { errors } } = useForm({ 
     defaultValues: { message: '' },
     mode: 'onChange'
   });
   const [recipientId, setRecipientId] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
@@ -27,47 +30,27 @@ export default function Home() {
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  // Fetch users (without sensitive email information)
-  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => fetcher(`
-      query GetUsers {
-        users {
-          id
-          name
-        }
-      }
-    `),
-  })
+  // Fetch users
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery(useUsers())
   
   // Send kudos mutation
+  const { sendKudos: sendKudosMutation } = useSendKudos();
   const { mutate: sendKudos, isPending: isSending } = useMutation({
     mutationFn: async (data: { recipientId: string | null; message: string }) => {
       if (!data.recipientId) throw new Error('Please select a user');
       if (!data.message.trim()) throw new Error('Please enter a message');
-      return fetcher(`
-        mutation SendKudos($input: SendKudosInput!) {
-          sendKudos(input: $input) {
-            id
-            message
-            receiver {
-              id
-              name
-            }
-          }
-        }
-      `, {
-        input: {
-          senderId: users[0]?.id || '4ea211ca-b07f-49ff-abfd-8e066610500f',
-          receiverId: data.recipientId,
-          message: data.message.trim(),
-        },
+      
+      return sendKudosMutation({
+        receiverId: data.recipientId,
+        message: data.message.trim(),
       });
     },
     onSuccess: () => {
       reset();
       setRecipientId(null);
       toast.success("Kudos sent! 🎉");
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['kudos'] });
     },
     onError: (error: unknown) => {
       toast.error(error instanceof Error ? error.message : 'Failed to send kudos');
@@ -75,74 +58,15 @@ export default function Home() {
   })
 
   const users = usersData?.users || [];
-  const teammateOptions = users.map((u: any) => ({ label: u.name, value: u.id }));
+  // Filter out current user from recipients
+  const availableUsers = users.filter(u => u.id !== currentUser?.id);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      {/* Top Navigation */}
-      <div style={{
-        backgroundColor: '#4a154b',
-        color: 'white',
-        padding: '12px 0',
-        borderBottom: '1px solid #6b2c5c'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ 
-              width: '32px', 
-              height: '32px', 
-              backgroundColor: '#007a5a', 
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '16px'
-            }}>
-              🎉
-            </div>
-            <div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>Peer Bonus</div>
-              <div style={{ fontSize: '12px', opacity: 0.8 }}>Recognize Amazing Work</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{
-              padding: '6px 12px',
-              backgroundColor: '#8b2a5b',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}>
-              ✨ Send Kudos
-            </div>
-            <Link href="/feed" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div style={{
-                padding: '6px 12px',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer'
-              }}>
-                📊 View Feed
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
+    <AppShell>
       <div style={{
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: '40px 20px',
-        minHeight: 'calc(100vh - 80px)'
+        padding: '0 20px'
       }}>
         
         <div style={{
@@ -229,7 +153,7 @@ export default function Home() {
                       >
                         <span style={{ color: recipientId ? '#374151' : '#9ca3af' }}>
                           {recipientId ? 
-                            users.find(u => u.id === recipientId)?.name || 'Select a teammate' : 
+                            availableUsers.find(u => u.id === recipientId)?.name || 'Select a teammate' : 
                             '🔍 Select a teammate'
                           }
                         </span>
@@ -251,7 +175,7 @@ export default function Home() {
                           maxHeight: '200px',
                           overflowY: 'auto'
                         }}>
-                          {users.map((user: any, index: number) => {
+                          {availableUsers.map((user: any, index: number) => {
                             const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6'];
                             const color = colors[index % colors.length];
                             
@@ -268,7 +192,7 @@ export default function Home() {
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: '8px',
-                                  borderBottom: index < users.length - 1 ? '1px solid #f3f4f6' : 'none',
+                                  borderBottom: index < availableUsers.length - 1 ? '1px solid #f3f4f6' : 'none',
                                   backgroundColor: recipientId === user.id ? '#f0f9ff' : 'transparent',
                                   transition: 'background-color 0.2s'
                                 }}
@@ -467,7 +391,7 @@ export default function Home() {
                     color: '#718096',
                     margin: 0
                   }}>
-                    {users.length} amazing teammates
+                    {availableUsers.length} amazing teammates
                   </p>
                 </div>
               </div>
@@ -597,6 +521,6 @@ export default function Home() {
           50% { opacity: 0.5; }
         }
       `}</style>
-    </div>
+    </AppShell>
   )
 }

@@ -1,7 +1,7 @@
 """
 Synchronous repository methods for GraphQL to avoid greenlet issues.
 """
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select
@@ -15,9 +15,24 @@ class SyncUserRepository:
         """Get list of users."""
         return db.query(User).limit(limit).all()
 
-    def get_by_id(self, db: Session, user_id: UUID) -> User:
+    def get(self, db: Session, id: UUID) -> Optional[User]:
         """Get user by ID."""
-        return db.query(User).filter(User.id == user_id).first()
+        return db.query(User).filter(User.id == id).first()
+
+    def get_by_id(self, db: Session, user_id: UUID) -> Optional[User]:
+        """Get user by ID (alias for compatibility)."""
+        return self.get(db, user_id)
+
+    def get_by_email(self, db: Session, email: str) -> Optional[User]:
+        """Get user by email."""
+        return db.query(User).filter(User.email == email).first()
+
+    def create(self, db: Session, user: User) -> User:
+        """Create a new user."""
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
 
 
 class SyncKudosRepository:

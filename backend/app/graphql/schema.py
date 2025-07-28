@@ -10,6 +10,7 @@ from app.models.user import User as UserModel
 from app.models.reaction import Reaction as ReactionModel
 from app.graphql.sync_db import get_sync_db
 from app.graphql.sync_repositories import sync_user_repository, sync_kudos_repository
+from app.core.middleware import get_current_user_from_context, require_authenticated_user
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 
@@ -60,7 +61,6 @@ class Kudos:
 
 @strawberry.input
 class SendKudosInput:
-    senderId: str
     receiverId: str
     message: str
 
@@ -68,7 +68,6 @@ class SendKudosInput:
 class ToggleReactionInput:
     kudosId: str
     reactionType: str
-    userId: str
 
 def to_user(user: UserModel) -> User:
     return User(
@@ -143,28 +142,36 @@ def send_kudos(
     info: Info,
     input: SendKudosInput
 ) -> Optional[Kudos]:
+    # Require authentication
+    current_user = require_authenticated_user(info)
+    
     with get_sync_db() as db:
-        # Create the kudos object
+        # Create the kudos object using authenticated user as sender
         kudos = KudosModel(
-            sender_id=UUID(input.senderId),
+            sender_id=current_user.id,
             receiver_id=UUID(input.receiverId),
             message=input.message
         )
         created_kudos = sync_kudos_repository.create(db, kudos)
-        return to_kudos(created_kudos)
+        return to_kudos(created_kudos, current_user.id)
 
 def get_kudos_list(info: Info, limit: int = 100) -> List[Kudos]:
+    # Get current user for reaction context (optional)
+    current_user = get_current_user_from_context(info)
+    user_id = current_user.id if current_user else None
+    
     with get_sync_db() as db:
         kudos_list = sync_kudos_repository.list(db, limit=limit)
-        # For now, pass the first user's ID as default user
-        default_user_id = UUID("4ea211ca-b07f-49ff-abfd-8e066610500f")  # Alice's ID
-        return [to_kudos(kudos, default_user_id) for kudos in kudos_list]
+        return [to_kudos(kudos, user_id) for kudos in kudos_list]
 
 def toggle_reaction(info: Info, input: ToggleReactionInput) -> bool:
     """Toggle a reaction - add if not exists, remove if exists"""
+    # Require authentication
+    current_user = require_authenticated_user(info)
+    
     with get_sync_db() as db:
         kudos_id = UUID(input.kudosId)
-        user_id = UUID(input.userId)
+        user_id = current_user.id
         reaction_type = input.reactionType
         
         # Check if reaction already exists
@@ -205,5 +212,8 @@ class Mutation:
     def toggleReaction(self, input: ToggleReactionInput) -> bool:
         return toggle_reaction(None, input)
 
+def get_context(request, response=None):
+    return {"request": request, "response": response}
+
 schema = strawberry.Schema(query=Query, mutation=Mutation)
-graphql_router = GraphQLRouter(schema)
+graphql_router = GraphQLRouter(schema, context_getter=get_context)

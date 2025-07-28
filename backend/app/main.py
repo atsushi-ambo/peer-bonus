@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from strawberry.fastapi import GraphQLRouter
 
+from app.api.auth import router as auth_router
 from app.core.config import settings
 from app.graphql.schema import schema
 
@@ -32,6 +33,9 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+# API routes
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 
 # GraphQL endpoint
 graphql_router = GraphQLRouter(schema)

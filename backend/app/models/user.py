@@ -24,9 +24,17 @@ class User(Base):
         String(255), 
         nullable=False
     )
+    password_hash: Mapped[str] = mapped_column(
+        String(255), 
+        nullable=False
+    )
     avatar_url: Mapped[Optional[str]] = mapped_column(
         String(512), 
         nullable=True
+    )
+    is_active: Mapped[bool] = mapped_column(
+        default=True,
+        nullable=False
     )
     
     # Relationships
