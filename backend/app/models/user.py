@@ -7,6 +7,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.kudos import Kudos
+    from app.models.reaction import Reaction
 
 class User(Base):
     __tablename__ = "users"
@@ -38,6 +39,11 @@ class User(Base):
         "Kudos", 
         back_populates="receiver", 
         foreign_keys="Kudos.receiver_id"
+    )
+    reactions: Mapped[List["Reaction"]] = relationship(
+        "Reaction", 
+        back_populates="user",
+        cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:

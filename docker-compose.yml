@@ -11,7 +11,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
       interval: 5s
       retries: 5
-    ports: ["5432:5432"]
+    ports: ["5433:5432"]
 
   backend:
     build:
@@ -23,7 +23,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports: ["8000:8000"]
+    ports: ["8001:8000"]
 
   frontend:
     build:
@@ -34,8 +34,9 @@ services:
     depends_on: 
       - backend
     environment:
-      NEXT_PUBLIC_GRAPHQL_ENDPOINT: http://localhost:8000/graphql
-    ports: ["3000:3000"]
+      NEXT_PUBLIC_API_URL: http://localhost:8001
+      NEXT_PUBLIC_GRAPHQL_ENDPOINT: http://localhost:8001/graphql
+    ports: ["3001:3000"]
 
 volumes:
   pgdata:
